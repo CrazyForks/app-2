@@ -1,3 +1,5 @@
+<!-- ![Lanes Logo](logo.png) -->
+
 <p align="center">
   <h1 align="center">Lanes</h1>
   <p align="center"><strong>Mission control for AI coding agents.</strong></p>
@@ -6,50 +8,95 @@
 
 <br>
 
-## The Problem
+<p align="center">
+  <!-- Replace with actual screenshot of the Lanes dashboard -->
+  <img src="https://placeholder.lanes.sh/dashboard.png" alt="Lanes Dashboard" width="800" />
+</p>
 
-You're running 3–5 AI agents in parallel across different features. You have 8 terminal tabs, no idea which one is doing what, and the only workflow tracker is your short-term memory. The AI agents got powerful — the workflow around them didn't.
+<br>
 
-## What Lanes Does
+## You lost track three agents ago.
 
-Lanes is a desktop app that gives you a kanban board where every card can have a live AI agent terminal attached. Drag work through stages. See what's running, what's blocked, and what shipped — all in one window.
+You have five AI coding agents running across eight terminal tabs. One is waiting for input. One finished ten minutes ago and you didn't notice. Two are doing overlapping work. The only thing keeping it all together is your short-term memory — and it just failed.
 
-- **Kanban workflow** — Issues move through Planning → Implementation → Review → Done. Drag to reorder, multi-select to bulk-manage.
-- **Live terminals** — Each issue can have a running AI session with a real PTY. Click to expand, type to interact, drag files in.
-- **Multi-agent orchestration** — Run multiple sessions concurrently with queue management. Lanes detects when one finishes and starts the next.
-- **Auto-transitions** — Pattern matching on terminal output, CLI hooks, and file watchers detect when work moves to the next stage.
-- **Dependencies** — Link issues that block each other. Cycle detection built in.
-- **CLI-agnostic** — Works with Claude Code, Codex CLI, Gemini CLI, or any AI tool that runs in a terminal.
-- **Metrics** — Token usage, cost tracking, and runtime duration per session.
+AI agents got powerful. The workflow around them didn't.
+
+## Lanes fixes that.
+
+Lanes is a native desktop app that puts every AI coding session on an issue board. Each card is a task. Each task can have a live agent terminal attached. You see what's running, what's blocked, what's waiting, and what shipped — in one window, at a glance.
+
+No context switching. No lost terminals. No wondering what that tab was doing. Just drag work through your pipeline while your agents execute.
+
+It's the layer that was missing between you and your fleet of AI agents.
+
+## Features
+
+### Issue Board
+Drag issues through workflow columns — Planning, Implementation, Review, Done — plus Backlog and Misc. Multi-select with Shift+Click and Cmd+Click for bulk operations. Right-click context menus, sorting options, and collapsible columns. Board tabs scoped per project directory and worktree.
+
+### Live Embedded Terminals
+Every issue runs an AI session in a real PTY-backed terminal. Start sessions in plan mode or implement mode. Resume Claude sessions across restarts. Drag files onto the terminal to inject paths. Real-time status detection: busy, awaiting input, stopped, exited, error.
+
+### Worktree Management
+Auto-create git worktrees per issue with generated branch names, or select existing worktrees. Status overview in the status bar showing uncommitted and unmerged state. Auto-cleanup on issue completion. Per-project base branch detection with manual override.
+
+### Labels & Filtering
+Create, rename, and assign labels with 13 color options. Filter the board by label, working directory, or workflow step. Clear all filters in one action.
+
+### Dependencies
+Link issues as dependencies via a multi-select picker. Cycle detection prevents circular chains. Dependent issues stay blocked until all prerequisites reach Done.
+
+### Quick Commands
+Preset and custom commands with keyboard shortcuts Cmd+Alt+1–9. Two types: `claude` (injected into CLI session) and `terminal` (run as shell command). Built-in defaults shipped with new installs, fully customizable in Settings.
+
+### File Browser & Editor
+Sidebar file tree for the selected issue's working directory. Monaco editor with tabbed editing, dirty file tracking, syntax highlighting, and save on Cmd+S.
+
+### Git Integration
+Diff view with two modes: Changes (uncommitted working tree diff) and History (committed diffs). Monaco-powered inline diff viewer. Automatic branch detection from the issue's worktree.
+
+### Process Manager
+Discover running CLI processes across the system. Three-way classification: Tracked (managed by Lanes), Orphan (has issue ID but no active session), External (unrelated). Kill individual processes or stop all sessions at once.
+
+## Works with
+
+Lanes is CLI-agnostic. It works with any AI tool that runs in a terminal.
+
+- **Claude Code** — Anthropic's CLI for Claude
+- **Codex CLI** — OpenAI's terminal agent
+- **Gemini CLI** — Google's terminal agent
+- **Any terminal-based AI tool** — If it runs in a shell, it runs in Lanes
 
 ## Install
 
 ```bash
-brew install --cask lanes-sh/lanes/lanes && open -a Lanes
+brew install --cask lanes-sh/lanes/lanes
 ```
 
-Requires macOS Ventura or later. Runs natively on both Apple Silicon and Intel.
+Requires macOS Ventura or later. Native on Apple Silicon and Intel.
 
-## Updates
+## Auto-updates
 
-Lanes checks for updates automatically on launch. You can also check manually in **Settings → About → Check Now**. No need to run `brew upgrade` — the app updates itself.
+Lanes checks for updates on launch and updates itself. No need to run `brew upgrade`. You can also check manually in **Settings > About > Check Now**.
 
-## Who It's For
+## Keyboard Shortcuts
 
-- **Solo developers** running multiple AI agents in parallel across worktrees
-- **Small teams** that need visibility into what's running and at what stage
-- **Power users** who want a mission control layer without leaving the terminal
+| Shortcut | Action |
+|---|---|
+| Cmd+N | New backlog issue |
+| Cmd+T | New Misc task |
+| Cmd+D | Complete selected issue(s) |
+| Cmd+, | Open Settings |
+| Cmd+S | Save file in editor |
+| Cmd+A | Select all in column, then all issues |
+| Cmd+Alt+1-9 | Run quick command by position |
+| Shift+Click | Range select issues |
+| Cmd/Ctrl+Click | Toggle individual issue selection |
+| Escape | Clear selection or close dialog |
 
-## How It Works
+## Built for developers who ship
 
-1. Create an issue describing what you want to build
-2. Start a session — Lanes spawns your AI CLI in an isolated terminal
-3. Work moves through your workflow as the agent progresses
-4. See everything at a glance on the board. Click any card to jump into its terminal.
-
-## Built With
-
-Tauri 2, React 19, SQLite. Local-first, fast, private. Your code and data never leave your machine.
+Tauri 2. React 19. SQLite. Local-first architecture — your code and data never leave your machine. Fast startup, low memory footprint, native performance.
 
 ## License
 
