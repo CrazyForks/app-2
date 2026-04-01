@@ -29,12 +29,6 @@ No context switching. No lost terminals. No wondering what that tab was doing. J
 
 It's the layer that was missing between you and your fleet of AI agents.
 
-## Works with
-
-- **Claude Code**, Anthropic's CLI for Claude
-
-Support for Codex CLI, Gemini CLI, and other terminal-based AI tools is on the roadmap.
-
 ## Install
 
 ```bash
@@ -73,6 +67,11 @@ Diff view with two modes: Changes (uncommitted working tree diff) and History (c
 
 ### Process Manager
 Discover running CLI processes across the system. Three-way classification: Tracked (managed by Lanes), Orphan (has issue ID but no active session), External (unrelated). Kill individual processes or stop all sessions at once.
+
+### Works with
+- **Claude Code**, Anthropic's CLI for Claude
+
+Support for Codex CLI, Gemini CLI, and other terminal-based AI tools is on the roadmap.
 
 ## Auto-updates
 
