@@ -29,6 +29,22 @@ No context switching. No lost terminals. No wondering what that tab was doing. J
 
 It's the layer that was missing between you and your fleet of AI agents.
 
+## Works with
+
+- **Claude Code**, Anthropic's CLI for Claude
+
+Support for Codex CLI, Gemini CLI, and other terminal-based AI tools is on the roadmap.
+
+## Install
+
+```bash
+brew install --cask lanes-sh/lanes/lanes && open Lanes
+```
+
+Requires macOS Ventura or later. Native on Apple Silicon and Intel.
+
+⚠️ On first launch, macOS will prompt you to grant **Full Disk Access**. This is needed so Lanes can detect running CLI processes and read worktree state across your projects. You only need to do this once.
+
 ## Features
 
 ### Issue Board
@@ -57,25 +73,6 @@ Diff view with two modes: Changes (uncommitted working tree diff) and History (c
 
 ### Process Manager
 Discover running CLI processes across the system. Three-way classification: Tracked (managed by Lanes), Orphan (has issue ID but no active session), External (unrelated). Kill individual processes or stop all sessions at once.
-
-## Works with
-
-Lanes is CLI-agnostic. It works with any AI tool that runs in a terminal.
-
-- **Claude Code**, Anthropic's CLI for Claude
-- **Codex CLI**, OpenAI's terminal agent
-- **Gemini CLI**, Google's terminal agent
-- **Any terminal-based AI tool**, if it runs in a shell, it runs in Lanes
-
-## Install
-
-```bash
-brew install --cask lanes-sh/lanes/lanes && open Lanes
-```
-
-Requires macOS Ventura or later. Native on Apple Silicon and Intel.
-
-⚠️ On first launch, macOS will prompt you to grant **Full Disk Access**. This is needed so Lanes can detect running CLI processes and read worktree state across your projects. You only need to do this once.
 
 ## Auto-updates
 
