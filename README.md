@@ -74,6 +74,59 @@ Discover running CLI processes across the system. Three-way classification: Trac
 
 Support for Codex CLI, Gemini CLI, and other terminal-based AI tools is on the roadmap.
 
+## Local MCP Server
+
+Lanes ships a built-in [Model Context Protocol](https://modelcontextprotocol.io) server so agents like Claude Code and Codex can read your board and drive sessions directly. Enable it in **Settings > Local MCP**, then click **Connect Claude Code** or **Connect Codex** for one-click config injection.
+
+| | |
+|---|---|
+| **Server name** | `lanes` |
+| **Transport** | SSE (Server-Sent Events) |
+| **Endpoint** | `http://localhost:5353/sse` |
+| **Protocol version** | `2024-11-05` |
+| **Server version** | `1.0.0` |
+| **Tool count** | 15 |
+| **Auth** | None — localhost-only, never leaves your machine |
+
+### Tools
+
+#### Issues
+
+| Tool | Description |
+|---|---|
+| `lanes_list_issues` | List issues from the Lanes board with optional filters (step, tags, componentId, search). |
+| `lanes_get_issue` | Get a single issue by its numeric ID, including full details and session history. |
+| `lanes_create_issue` | Create a new Lanes issue. Returns the created issue with its assigned ID. |
+| `lanes_update_issue` | Patch an existing issue. Only the fields you supply are updated. |
+| `lanes_delete_issue` | Permanently delete an issue and all its attachments. |
+| `lanes_move_issue` | Move an issue to a different board column. |
+
+#### Sessions
+
+| Tool | Description |
+|---|---|
+| `lanes_start_session` | Start a Claude Code, Codex, or shell session for an issue. Handles worktree creation, plan mode, custom prompts, and extra CLI flags or env vars. |
+| `lanes_stop_session` | Stop the running terminal session for an issue. |
+| `lanes_get_session_status` | Get status (running/stopped, CLI tool, timestamps, PTY state) for all sessions, or filter to one issue. |
+
+#### History and progress
+
+| Tool | Description |
+|---|---|
+| `lanes_get_issue_changes` | Get the list of files changed (git diff) in the issue's working directory. |
+| `lanes_get_issue_history` | Get Claude session conversation history for an issue, paginated. |
+| `lanes_read_terminal` | Read the last N lines of terminal scrollback for a session. Works with any CLI; ANSI codes stripped. |
+| `lanes_get_session_stats` | Get token usage and tool usage stats for an issue's Claude session. |
+
+#### Metadata
+
+| Tool | Description |
+|---|---|
+| `lanes_list_labels` | List all board labels (UUID, name, color). Call before tagging to resolve names to UUIDs. |
+| `lanes_list_components` | List all project components (UUID, name, project ID). Call before setting componentId. |
+
+Full parameter schemas and example prompts: [lanes.sh/docs/local-mcp](https://lanes.sh/docs/local-mcp).
+
 ## Auto-updates
 
 Lanes checks for updates on launch and updates itself. You can also check manually in **Settings > About > Check Now**.
