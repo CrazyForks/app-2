@@ -5,7 +5,9 @@ description: Use when managing Lanes issues or driving Claude Code sessions thro
 
 # Lanes sessions
 
-Lanes is a desktop app that puts every AI coding session on an issue board. It exposes a local MCP server (SSE on `http://localhost:5353/sse`) with 15 tools — all prefixed `lanes_` — for issue CRUD, session orchestration, history, and metadata lookups.
+Lanes is a desktop app that puts every AI coding session on an issue board. It exposes a local MCP server (SSE on `http://localhost:5353/sse`) with a set of `lanes_`-prefixed tools for issue CRUD, session orchestration, history, and metadata lookups.
+
+A single issue can host **multiple concurrent CLI sessions** (Claude, Codex, shell). Session-targeting tools take an optional `session` ref (UUID, auto-assigned slot, or name) to pick which one — see the "Multi-session model" section below.
 
 Use this skill whenever the user wants to look at, create, or run work on the Lanes board through chat.
 
@@ -31,16 +33,36 @@ Before doing anything, sanity-check that the Lanes MCP is reachable:
 | | `lanes_delete_issue` | By `id`. Permanent. |
 | | `lanes_move_issue` | Shorthand for `update_issue` with only `step`. |
 | Sessions | `lanes_start_session` | Required: `issueId`. Spawns Claude Code (default), Codex, or `shell`. |
-| | `lanes_stop_session` | Kills the PTY for `issueId`. |
-| | `lanes_get_session_status` | All sessions, or filter to one `issueId`. |
+| | `lanes_stop_session` | Stop a session for `issueId`. Optional `session` (UUID/slot/name) to disambiguate when >1. |
+| | `lanes_resume_session` | Re-attach Claude to a stopped session. **Claude-only.** Optional `session`. |
+| | `lanes_delete_session` | Permanently delete a session (stops it first if running). Optional `session`. |
+| | `lanes_get_session_status` | With `issueId`: bare array of every session for that issue. Without: envelope `{ sessions, appliedFilters, truncated, totalAvailable }` capped at 20. |
 | History | `lanes_get_issue_changes` | `git diff` for the issue's cwd, by `id`. |
-| | `lanes_get_issue_history` | Paginated Claude conversation history, by `id`. |
-| | `lanes_read_terminal` | Last `lines` (default 200, max 2000) of PTY scrollback for `issueId`. |
-| | `lanes_get_session_stats` | Tokens, model breakdown, tool calls, duration, by `id`. |
+| | `lanes_get_issue_history` | Paginated Claude conversation history, by `id`. Use `cliSessionId` to pick when an issue has multiple Claude sessions. |
+| | `lanes_read_terminal` | Last `lines` (default 200, max 2000) of PTY scrollback. Optional `session`. |
+| | `lanes_get_session_stats` | Tokens, model breakdown, tool calls, duration, by `id`. Use `cliSessionId` to pick when an issue has multiple Claude sessions. |
 | Metadata | `lanes_list_labels` | UUIDs, names, colors. Call before assigning `tags`. |
 | | `lanes_list_components` | UUIDs, names, project IDs. Call before setting `componentId`. |
+| | `lanes_delete_worktree` | Remove a git worktree on disk by `projectPath` + `name`. |
 
-Note the parameter-name inconsistency: issue endpoints take `id`, session endpoints take `issueId`. Don't mix them.
+Note the parameter-name inconsistency: issue endpoints take `id`, session endpoints take `issueId`. Don't mix them. Session-targeting tools additionally accept an optional `session` ref (UUID, slot, or name — case-insensitive).
+
+## Multi-session model
+
+An issue can host any number of concurrent CLI sessions. Each session is addressable three ways:
+
+- **`session_uuid`** — Lanes' internal stable ID.
+- **`slot`** — auto-assigned ordinal at spawn (`"1"`, `"2"`, …, lowest free integer).
+- **`name`** — optional user-editable label.
+
+Session-aware tools (`lanes_stop_session`, `lanes_resume_session`, `lanes_delete_session`, `lanes_read_terminal`) take `session: string` resolved in that order, case-insensitive. When `session` is omitted:
+
+- **One session for the issue** → tool proceeds against it. Happy path is unchanged.
+- **Multiple sessions** → tool returns an **MCP success result** (not an error) whose text starts `"Issue N has multiple sessions…"` and whose `_meta.sessions` array lists each candidate as `{ sessionUuid, slot, name, runtimeStatus, cli, cliSessionId, createdAt }`. Pick one (ask the user if not obvious) and retry with `session` set to its slot, name, or UUID.
+
+`lanes_resume_session` is the **only** way to re-attach a stopped Claude session. Do **not** pass `--resume`, `--continue`, `--session-id`, or `--fork-session` to `lanes_start_session` — those flags are hard-rejected. Codex and shell sessions have no resume semantics; start fresh.
+
+`cliSessionId` (the CLI's own resume token — for Claude, the `--resume <uuid>` value) is distinct from `session_uuid` (the Lanes ref used in `session`). `lanes_get_issue_history` and `lanes_get_session_stats` disambiguate via `cliSessionId`; everything else uses `session`. Don't conflate them.
 
 ## Critical gotchas
 
@@ -102,13 +124,25 @@ Then ask the user to review the resulting plans; promote each issue to `todo` or
 4. lanes_get_session_stats { id: issueId }              // tokens/tool calls/duration
 ```
 
-If the terminal looks frozen, `lanes_stop_session` and `lanes_start_session` again — the issue's existing description is preserved.
+Multi-session issues: step 1 returns the candidate array — pick one and pass `session` to step 2 (and `cliSessionId` to steps 3/4) to scope subsequent reads.
+
+If a Claude session has stopped and you want to pick up where it left off, call `lanes_resume_session { issueId, session? }` — see the next workflow.
+
+### Resume a stopped Claude session
+
+```
+1. lanes_get_session_status { issueId }                                   // see what's there
+2. lanes_resume_session { issueId, session: "<slot|name|uuid>" }          // session optional if only one
+3. lanes_read_terminal { issueId, session: "<same>" }                     // verify it's live again
+```
+
+Only works for `cli: "claude"` sessions that recorded a `cliSessionId`. Codex/shell sessions can't be resumed — use `lanes_start_session` to launch a fresh one.
 
 ### Mark complete
 
 ```
 1. lanes_get_issue_changes { id }     // confirm there is real work to land
-2. lanes_stop_session { issueId }
+2. lanes_stop_session { issueId, session? }   // pass session on multi-session issues
 3. lanes_move_issue { id, step: "done" }
 ```
 
@@ -121,3 +155,6 @@ If the terminal looks frozen, `lanes_stop_session` and `lanes_start_session` aga
 - ❌ Confusing `id` (issue endpoints) with `issueId` (session endpoints). They refer to the same thing but live under different keys.
 - ❌ Using `lanes_update_issue` to "clear" a field by sending `""`. Empty string is a value; pass `null` to clear.
 - ❌ Starting many sessions without `componentId` or `cwd` set. Sessions need a working directory; otherwise the PTY spawns wherever the Lanes app was launched from.
+- ❌ Passing `--resume`, `--continue`, `--session-id`, or `--fork-session` to `lanes_start_session`. These are rejected — use `lanes_resume_session` to re-attach a stopped Claude session.
+- ❌ Treating the ambiguity response from `lanes_stop_session` / `lanes_resume_session` / `lanes_delete_session` / `lanes_read_terminal` as an error. It's a normal MCP success result with `_meta.sessions` — pick a candidate and retry with `session` set.
+- ❌ Confusing `cliSessionId` with `session`. `cliSessionId` is the CLI's own resume token (only consumed by `lanes_get_issue_history` and `lanes_get_session_stats`); `session` is the Lanes ref (UUID / slot / name) used by stop / resume / delete / read_terminal.

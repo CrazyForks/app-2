@@ -9,6 +9,8 @@ Use this skill to move work between Linear (the team's source of truth) and Lane
 
 This skill assumes the **`lanes-sessions`** skill is also available — it covers the lanes_* issue/session tools in detail. This skill focuses on the **bridging** layer.
 
+When a Lanes issue hosts more than one CLI session, follow the multi-session disambiguation rules in `lanes-sessions` (pass `session` on stop / resume / read_terminal). Bridge tools (`lanes_linear_*`) never address sessions directly.
+
 ## When to use
 
 - Work originates in Linear and you want Claude Code to do the actual implementation locally.

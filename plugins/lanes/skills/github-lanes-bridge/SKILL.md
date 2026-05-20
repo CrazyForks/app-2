@@ -9,6 +9,8 @@ Use this skill to move work between GitHub (where issues and PRs live) and Lanes
 
 This skill assumes the **`lanes-sessions`** skill is also available — it covers the lanes_* issue/session tools in detail. This skill focuses on the **bridging** layer.
 
+When a Lanes issue hosts more than one CLI session, follow the multi-session disambiguation rules in `lanes-sessions` (pass `session` on stop / resume / read_terminal). Bridge tools (`lanes_github_*`) never address sessions directly.
+
 ## When to use
 
 - Work originates in GitHub and you want Claude Code to do the actual implementation locally.
