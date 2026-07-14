@@ -80,12 +80,12 @@ Lanes ships a built-in [Model Context Protocol](https://modelcontextprotocol.io)
 
 | | |
 |---|---|
-| **Server name** | `lanes` |
+| **Server name** | `lanes-local` (legacy `lanes` still works) |
 | **Transport** | SSE (Server-Sent Events) |
 | **Endpoint** | `http://localhost:5353/sse` |
 | **Protocol version** | `2024-11-05` |
 | **Server version** | `1.0.0` |
-| **Tool count** | 15 |
+| **Tool count** | 30 (18 workspace + 6 GitHub + 6 Linear) |
 | **Auth** | None — localhost-only, never leaves your machine |
 
 ### Tools
@@ -107,7 +107,10 @@ Lanes ships a built-in [Model Context Protocol](https://modelcontextprotocol.io)
 |---|---|
 | `lanes_start_session` | Start a Claude Code, Codex, or shell session for an issue. Handles worktree creation, plan mode, custom prompts, and extra CLI flags or env vars. |
 | `lanes_stop_session` | Stop the running terminal session for an issue. |
+| `lanes_resume_session` | Re-attach to a stopped Claude or Codex session (the UI 'Resume Session' button). Disambiguate with an optional `session` (UUID / slot / name). |
+| `lanes_delete_session` | Permanently delete a session: stops it if still running, then removes the record. |
 | `lanes_get_session_status` | Get status (running/stopped, CLI tool, timestamps, PTY state) for all sessions, or filter to one issue. |
+| `lanes_delete_worktree` | Remove the git worktree created for an issue's session. |
 
 #### History and progress
 
@@ -163,7 +166,7 @@ npx skills add lanes-sh/app
 [skills.sh](https://skills.sh) installs only the SKILL.md files. To also enable the desktop MCP, run:
 
 ```
-claude mcp add --transport sse lanes http://localhost:5353/sse --scope user
+claude mcp add --transport sse lanes-local http://localhost:5353/sse --scope user
 ```
 
 then restart Claude Code. Lanes itself must be running (the desktop app open) for the MCP endpoint to respond.

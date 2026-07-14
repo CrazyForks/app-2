@@ -14,7 +14,7 @@ The API base URL is `https://api.lanes.sh` in production (or the API URL the use
 
 ## Fastest path: the MCP server
 
-The `lanes-forms` MCP server wraps every call below and is the easiest way to work. If it isn't connected yet, run **`/setup-forms-mcp`** to register it — it points at the hosted server (`https://api.lanes.sh/mcp`), authenticated with a workspace key. Its five tools are `create_form`, `get_form`, `update_form`, `generate_form_snippet`, and `submit_form`. With a workspace key configured, `create_form` provisions a form **born claimed** into that workspace, and the management tools (`get_form` / `update_form` / `generate_form_snippet`) require it. Without the MCP, call the API directly as shown below.
+The `lanes` MCP server wraps every call below and is the easiest way to work. If it isn't connected yet, run **`/setup-mcp`** to register it — it points at the hosted server (`https://api.lanes.sh/mcp`), authenticated with a workspace key. Its five tools are `create_form`, `get_form`, `update_form`, `generate_form_snippet`, and `submit_form`. With a workspace key configured, `create_form` provisions a form **born claimed** into that workspace, and the management tools (`get_form` / `update_form` / `generate_form_snippet`) require it. Without the MCP, call the API directly as shown below.
 
 ## Provision a form
 
@@ -31,21 +31,21 @@ Content-Type: application/json
   "allowed_origins": ["example.com"],
   "schema": [
     {"name": "email", "type": "email", "required": true},
-    {"name": "message", "type": "textarea"}
+    {"name": "message", "type": "textarea", "description": "How can we help?"}
   ]
 }
 ```
 
-- `schema` is **required** (1–50 fields). Each entry is `{name, type, required?, max_length?}`. Field types: `text`, `email`, `textarea`, `number`, `checkbox`, `hidden`. Names must be unique, 1–80 chars; `_gotcha` is reserved (the spam honeypot) and is rejected in a schema.
+- `schema` is **required** (1–50 fields). Each entry is `{name, type, required?, max_length?, description?}`. Field types: `text`, `email`, `textarea`, `number`, `checkbox`, `hidden`. Names must be unique, 1–80 chars; `_gotcha` is reserved (the spam honeypot) and is rejected in a schema. `description?` is optional helper text (≤500 chars, trimmed; blank becomes null) shown as subtext under the question on the hosted form page and as a `<small>` hint in generated HTML snippets.
 - `name`, `allowed_origins`, and `recipients` are optional. `allowed_origins` (max 20) are the sites allowed to submit from a browser — give a hostname (`example.com`), full origin (`https://example.com`), or wildcard (`*.example.com`); `localhost` is always allowed for local testing. `recipients` (max 5) are the addresses submissions are emailed to; the **first** is the claim/owner address.
 
-The `201` response returns `form_id`, `endpoint_url` (POST submissions here), `state`, `expires_at`, `limits`, `workflow`, `forward_email`, `store_submissions`, and — depending on how it was created — `claim_url` or `claim_email_sent_to`. There is no per-form management secret.
+The `201` response returns `form_id`, `endpoint_url` (POST submissions here), `state`, `expires_at`, `limits`, `workflow`, `forward_email`, `store_submissions`, and `claim_url`. An anonymous create **always** returns a clickable `claim_url` to hand to the owner; when you pass `recipients` it *also* emails that same link to the first address and sets `claim_email_sent_to`. A keyed (born-claimed) create returns both as `null`. There is no per-form management secret.
 
 **How the form is created and claimed depends on the bearer:**
 
-- **With a workspace API key** (`Authorization: Bearer lfk_...`) — the reliable path. The form is born **claimed** in that workspace, ready to manage immediately. No claim email and no `claim_url`; `expires_at` is null. This is what the MCP uses when `FORMS_API_KEY` is set.
-- **Anonymous, with `recipients`:** a claim email is sent to the first address (`claim_email_sent_to` is set). The owner clicks it, signs in, and the form lands in their dashboard.
-- **Anonymous, no `recipients`:** the response returns a single-use `claim_url` instead — hand it to whoever should own the form.
+- **With a workspace API key** (`Authorization: Bearer lfk_...`) — the reliable path. The form is born **claimed** in that workspace, ready to manage immediately. No claim email and no `claim_url`; `expires_at` is null. This is what the MCP uses when a workspace key is configured.
+- **Anonymous, with `recipients`:** the response returns a single-use `claim_url` AND a claim email is sent to the first address (`claim_email_sent_to` is set) carrying the same link. The owner can click either one, sign in, and the form lands in their dashboard.
+- **Anonymous, no `recipients`:** the response returns the single-use `claim_url` (there is no address to email it to) — hand it to whoever should own the form.
 
 > **Anonymous provisioning is gated.** An unauthenticated `POST /v1/forms` returns `503 forms_public_disabled` on deployments where public provisioning is off (its current production default). When you can't sign the request anonymously, provision with a workspace `lfk_` key. Anonymous (unclaimed) forms store up to 25 submissions and **expire 7 days** after creation unless claimed.
 
